@@ -128,13 +128,13 @@ parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
 # ... TODO
 clf_poly = SVC(kernel='poly', C=1.0)
 
-clf_poly.fit(X_train,y_train)
-
+clf_poly.fit(X_train, y_train)
 
 print(clf_grid.best_params_)
 print('Generalization score for polynomial kernel: %s, %s' %
       (clf_poly.score(X_train, y_train),
        clf_poly.score(X_test, y_test)))
+
 
 #%%
 # display your results using frontiere
@@ -163,6 +163,61 @@ frontiere(f_poly, X, y)
 plt.title("polynomial kernel")
 plt.tight_layout()
 plt.draw()
+
+#%%
+
+###############################################################################
+# SVM à noyau polynomial avec recherche d'hyperparamètres
+###############################################################################
+Cs = list(np.logspace(-3, 3, 5))
+gammas = 10. ** np.arange(1, 2)
+degrees = np.r_[1, 2, 3]
+
+# Paramètres pour la grille de recherche
+parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
+
+# GridSearchCV pour la recherche des meilleurs hyperparamètres
+clf_poly = GridSearchCV(SVC(), parameters, cv=5)
+clf_poly.fit(X_train, y_train)
+
+# Afficher les meilleurs paramètres
+print("Best parameters found for polynomial kernel: ", clf_poly.best_params_)
+
+# Afficher les scores de généralisation
+print('Generalization score for polynomial kernel: %s, %s' %
+      (clf_poly.score(X_train, y_train),
+       clf_poly.score(X_test, y_test)))
+
+###############################################################################
+# Visualisation avec la fonction frontiere
+###############################################################################
+def f_linear(xx):
+    """Classifier pour le noyau linéaire"""
+    return clf_linear.predict(xx.reshape(1, -1))
+
+def f_poly(xx):
+    """Classifier pour le noyau polynomial"""
+    return clf_poly.predict(xx.reshape(1, -1))
+
+# Visualisation des frontières de décision
+plt.ion()
+plt.figure(figsize=(15, 5))
+
+plt.subplot(131)
+plot_2d(X, y)  # Fonction que tu as déjà, j'imagine
+plt.title("iris dataset")
+
+plt.subplot(132)
+frontiere(f_linear, X, y)  # Fonction que tu as déjà pour tracer la frontière
+plt.title("linear kernel")
+
+plt.subplot(133)
+frontiere(f_poly, X, y)  # Même chose pour le noyau polynomial
+plt.title("polynomial kernel")
+plt.tight_layout()
+plt.draw()
+
+
 
 #%%
 ###############################################################################

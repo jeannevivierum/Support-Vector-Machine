@@ -36,30 +36,31 @@ warnings.filterwarnings("ignore")
 plt.style.use('ggplot')
 ```
 
-# Introduction
+## Introduction
 Les machines à vecteurs de support (Support Vector Machine, SVM, en anglais), sont un ensemble de méthodes d'apprentissage supervisé utilisées pour la classification, la régression et la détection des valeurs aberrantes. La popularité des méthodes SVM, pour la classification binaire en particulier, provient du fait qu’elles reposent sur l’application d’algorithmes de recherche de règles de décision linéaires : on parle d’hyperplans (affines) séparateurs.
 
-# Question 1
+## Question 1
 Pour commencer, écrivons un code qui va classifier la classe 1 contre la classe 2 du dataset $\texttt{iris}$ en utilisant les deux premières variables et un noyau linéaire. 
 
 ```{python}
-from sklearn import datasets
 iris = datasets.load_iris()
 X = iris.data
+X = scaler.fit_transform(X)
 y = iris.target
 X = X[y != 0, :2]
 y = y[y != 0]
 
-parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 200))}
+X, y = shuffle(X, y)
+
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
 
-clf_linear = SVC(kernel='linear', C=1.0)
+parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 200))}
+
+clf_linear = GridSearchCV(SVC(),parameters,n_jobs=-1)
 
 clf_linear.fit(X_train, y_train)
 
-train_score = clf_linear.score(X_train, y_train)
-test_score = clf_linear.score(X_test, y_test)
 
 print('Generalization score for linear kernel: %s, %s' %
       (clf_linear.score(X_train, y_train),
@@ -68,22 +69,67 @@ print('Generalization score for linear kernel: %s, %s' %
 
 ici, commenter.
 
-# Question 2
+## Question 2
 
 Nous voulons alors comparer ce résultat avec un SVM basé sur noyau polynomial.
 
 ```{python}
+Cs = list(np.logspace(-3, 3, 5))
+gammas = 10. ** np.arange(1, 2)
+degrees = np.r_[1, 2, 3]
 
+
+
+parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
+
+
+clf_poly = GridSearchCV(SVC(),parameters,n_jobs=-1)
+
+clf_poly.fit(X_train,y_train)
+
+
+#print(clf_grid.best_params_)
+print('Generalization score for polynomial kernel: %s, %s' %
+      (clf_poly.score(X_train, y_train),
+       clf_poly.score(X_test, y_test)))
+
+
+def f_linear(xx):
+    """Classifier: needed to avoid warning due to shape issues"""
+    return clf_linear.predict(xx.reshape(1, -1))
+
+def f_poly(xx):
+    """Classifier: needed to avoid warning due to shape issues"""
+    return clf_poly.predict(xx.reshape(1, -1))
+
+plt.ion()
+plt.figure(figsize=(15, 5))
+plt.subplot(131)
+plot_2d(X, y)
+plt.title("iris dataset")
+
+plt.subplot(132)
+frontiere(f_linear, X, y)
+plt.title("linear kernel")
+
+plt.subplot(133)
+frontiere(f_poly, X, y)
+
+plt.title("polynomial kernel")
+plt.tight_layout()
+plt.draw()
 ```
 
-## SVM GUI
+surement faux ! comparer les résultats
 
-# Question 3
+# SVM GUI
 
-## Classification de visages
+## Question 3
 
-# Question 4
+# Classification de visages
 
-# Question 5
+## Question 4
 
-# Question 6
+## Question 5
+
+## Question 6
