@@ -1,0 +1,89 @@
+---
+title: "Support Vector Machine"
+subtitle: "Jeanne Vivier"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+```{python}
+#| echo: false
+#| include: false
+import sys
+from pathlib import Path
+sys.path.append(str(Path("..") / "Code"))
+from svm_source import *
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+
+from sklearn import svm
+from sklearn import datasets
+from sklearn.utils import shuffle
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.datasets import fetch_lfw_people
+from sklearn.decomposition import PCA
+from time import time
+
+scaler = StandardScaler()
+
+import warnings
+warnings.filterwarnings("ignore")
+
+plt.style.use('ggplot')
+```
+
+# Introduction
+Les machines à vecteurs de support (Support Vector Machine, SVM, en anglais), sont un ensemble de méthodes d'apprentissage supervisé utilisées pour la classification, la régression et la détection des valeurs aberrantes. La popularité des méthodes SVM, pour la classification binaire en particulier, provient du fait qu’elles reposent sur l’application d’algorithmes de recherche de règles de décision linéaires : on parle d’hyperplans (affines) séparateurs.
+
+# Question 1
+Pour commencer, écrivons un code qui va classifier la classe 1 contre la classe 2 du dataset $\texttt{iris}$ en utilisant les deux premières variables et un noyau linéaire. 
+
+```{python}
+from sklearn import datasets
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+X = X[y != 0, :2]
+y = y[y != 0]
+
+parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 200))}
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
+
+clf_linear = SVC(kernel='linear', C=1.0)
+
+clf_linear.fit(X_train, y_train)
+
+train_score = clf_linear.score(X_train, y_train)
+test_score = clf_linear.score(X_test, y_test)
+
+print('Generalization score for linear kernel: %s, %s' %
+      (clf_linear.score(X_train, y_train),
+       clf_linear.score(X_test, y_test)))
+```
+
+ici, commenter.
+
+# Question 2
+
+Nous voulons alors comparer ce résultat avec un SVM basé sur noyau polynomial.
+
+```{python}
+
+```
+
+## SVM GUI
+
+# Question 3
+
+## Classification de visages
+
+# Question 4
+
+# Question 5
+
+# Question 6

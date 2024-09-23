@@ -96,21 +96,23 @@ y = y[y != 0]
 
 # split train test
 X, y = shuffle(X, y)
-# ... TODO
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
 ###############################################################################
 # fit the model with linear vs polynomial kernel
 ###############################################################################
 
 #%%
 # Q1 Linear kernel
-
-# fit the model
 parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 200))}
-# ... TODO
-clf_linear = # ... TODO
 
-# compute the score
-# ... TODO
+clf_linear = SVC(kernel='linear', C=1.0)
+
+clf_linear.fit(X_train, y_train)
+
+train_score = clf_linear.score(X_train, y_train)
+test_score = clf_linear.score(X_test, y_test)
 
 print('Generalization score for linear kernel: %s, %s' %
       (clf_linear.score(X_train, y_train),
@@ -124,14 +126,15 @@ degrees = np.r_[1, 2, 3]
 
 parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
 # ... TODO
-clf_poly = # ... TODO
-# ... TODO
+clf_poly = SVC(kernel='poly', C=1.0)
+
+clf_poly.fit(X_train,y_train)
+
 
 print(clf_grid.best_params_)
 print('Generalization score for polynomial kernel: %s, %s' %
       (clf_poly.score(X_train, y_train),
        clf_poly.score(X_test, y_test)))
-
 
 #%%
 # display your results using frontiere
