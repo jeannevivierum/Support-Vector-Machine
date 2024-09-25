@@ -125,7 +125,9 @@ gammas = 10. ** np.arange(1, 2)
 degrees = np.r_[1, 2, 3]
 
 parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
-# ... TODO
+
+
+
 clf_poly = SVC(kernel='poly', C=1.0)
 
 clf_poly.fit(X_train, y_train)
@@ -265,7 +267,7 @@ idx0 = (lfw_people.target == target_names.index(names[0]))
 idx1 = (lfw_people.target == target_names.index(names[1]))
 images = np.r_[images[idx0], images[idx1]]
 n_samples = images.shape[0]
-y = np.r_[np.zeros(np.sum(idx0)), np.ones(np.sum(idx1))].astype(np.int)
+y = np.r_[np.zeros(np.sum(idx0)), np.ones(np.sum(idx1))].astype(int)
 
 # plot a sample set of the data
 plot_gallery(images, np.arange(12))
@@ -313,7 +315,12 @@ t0 = time()
 Cs = 10. ** np.arange(-5, 6)
 scores = []
 for C in Cs:
-    # TODO ...
+
+    clf = SVC(kernel='linear', C=C)
+    clf.fit(X_train,y_train)
+
+    score = clf.score(X_train, y_train)
+    scores.append(score)
 
 ind = np.argmax(scores)
 print("Best C: {}".format(Cs[ind]))
@@ -332,7 +339,13 @@ t0 = time()
 
 #%%
 # predict labels for the X_test images with the best classifier
-# clf =  ... TODO
+
+# fait par moi 
+t0=time()
+clf= SVC(kernel='linear', C=Cs[ind])
+clf.fit(X_train,y_train)
+
+# fin du fait par moi, vérifier avec les autres
 
 print("done in %0.3fs" % (time() - t0))
 # The chance level is the accuracy that will be reached when constantly predicting the majority class.
@@ -342,7 +355,8 @@ print("Accuracy : %s" % clf.score(X_test, y_test))
 #%%
 ####################################################################
 # Qualitative evaluation of the predictions using matplotlib
-
+# ici on a un soucis de taille de vecteurs donc on est obligés de les reshape
+y_pred = clf.predict(X_test)
 prediction_titles = [title(y_pred[i], y_test[i], names)
                      for i in range(y_pred.shape[0])]
 
@@ -374,7 +388,9 @@ def run_svm_cv(_X, _y):
           (_clf_linear.score(_X_train, _y_train), _clf_linear.score(_X_test, _y_test)))
 
 print("Score sans variable de nuisance")
-# TODO ... use run_svm_cv on data
+# fait par moi
+run_svm_cv(X, y)
+# fin du fait par moi
 
 print("Score avec variable de nuisance")
 n_features = X.shape[1]
@@ -383,12 +399,21 @@ sigma = 1
 noise = sigma * np.random.randn(n_samples, 300, )
 X_noisy = np.concatenate((X, noise), axis=1)
 X_noisy = X_noisy[np.random.permutation(X.shape[0])]
-# TODO ... use run_svm_cv on noisy data
+# fait par moi
+run_svm_cv(X_noisy, y)
+# fin du fait par moi
 
 #%%
 # Q5
 print("Score apres reduction de dimension")
 
-n_components = 20  # jouer avec ce parametre
+n_components = 80  # jouer avec ce parametre
 pca = PCA(n_components=n_components).fit(X_noisy)
-# ... TODO
+# fait main
+X_noisy_pca = pca.transform(X_noisy)
+
+print(f"Dimension après PCA: {X_noisy_pca.shape}")
+run_svm_cv(X_noisy_pca, y)
+# fin fait main
+
+# %%

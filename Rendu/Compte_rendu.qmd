@@ -78,8 +78,6 @@ Cs = list(np.logspace(-3, 3, 5))
 gammas = 10. ** np.arange(1, 2)
 degrees = np.r_[1, 2, 3]
 
-
-
 parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
 
 
@@ -87,8 +85,8 @@ clf_poly = GridSearchCV(SVC(),parameters,n_jobs=-1)
 
 clf_poly.fit(X_train,y_train)
 
+print(clf_poly.best_params_)
 
-#print(clf_grid.best_params_)
 print('Generalization score for polynomial kernel: %s, %s' %
       (clf_poly.score(X_train, y_train),
        clf_poly.score(X_test, y_test)))
@@ -126,10 +124,102 @@ surement faux ! comparer les résultats
 
 ## Question 3
 
+
+
 # Classification de visages
+
+Intéressons nous maintenant à un problème de classification de visages.  
 
 ## Question 4
 
+Nous cherchons à montrer l'influence du paramètre de régularisation. Nous affichons dans la figure (METTRE REF) le score d'apprentissage en fonction de C sur une échelle logarithmique entre 1e5 et 1e-5(qui n'est rien d'autre que 1 - l'erreur de prédiction).
+
+```{python}
+#| echo: false
+#| include: false
+
+"""
+The dataset used in this example is a preprocessed excerpt
+of the "Labeled Faces in the Wild", aka LFW_:
+
+  http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz (233MB)
+
+  _LFW: http://vis-www.cs.umass.edu/lfw/
+"""
+
+lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4,
+                              color=True, funneled=False, slice_=None,
+                              download_if_missing=True)
+
+images = lfw_people.images
+n_samples, h, w, n_colors = images.shape
+
+target_names = lfw_people.target_names.tolist()
+
+names = ['Tony Blair', 'Colin Powell']
+
+
+idx0 = (lfw_people.target == target_names.index(names[0]))
+idx1 = (lfw_people.target == target_names.index(names[1]))
+images = np.r_[images[idx0], images[idx1]]
+n_samples = images.shape[0]
+y = np.r_[np.zeros(np.sum(idx0)), np.ones(np.sum(idx1))].astype(int)
+
+plot_gallery(images, np.arange(12))
+plt.show()
+
+X = (np.mean(images, axis=3)).reshape(n_samples, -1)
+
+
+X -= np.mean(X, axis=0)
+X /= np.std(X, axis=0)
+
+indices = np.random.permutation(X.shape[0])
+train_idx, test_idx = indices[:X.shape[0] // 2], indices[X.shape[0] // 2:]
+X_train, X_test = X[train_idx, :], X[test_idx, :]
+y_train, y_test = y[train_idx], y[test_idx]
+images_train, images_test = images[
+    train_idx, :, :, :], images[test_idx, :, :, :]
+```
+
+
+
+COMMENTER
+
 ## Question 5
 
+```{python}
+def run_svm_cv(_X, _y):
+    _indices = np.random.permutation(_X.shape[0])
+    _train_idx, _test_idx = _indices[:_X.shape[0] // 2], _indices[_X.shape[0] // 2:]
+    _X_train, _X_test = _X[_train_idx, :], _X[_test_idx, :]
+    _y_train, _y_test = _y[_train_idx], _y[_test_idx]
+
+    _parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 5))}
+    _svr = svm.SVC()
+    _clf_linear = GridSearchCV(_svr, _parameters)
+    _clf_linear.fit(_X_train, _y_train)
+
+    print('Generalization score for linear kernel: %s, %s \n' %
+          (_clf_linear.score(_X_train, _y_train), _clf_linear.score(_X_test, _y_test)))
+
+print("Score sans variable de nuisance")
+# fait par moi
+run_svm_cv(X, y)
+# fin du fait par moi
+
+print("Score avec variable de nuisance")
+n_features = X.shape[1]
+# On rajoute des variables de nuisances
+sigma = 1
+noise = sigma * np.random.randn(n_samples, 300, )
+X_noisy = np.concatenate((X, noise), axis=1)
+X_noisy = X_noisy[np.random.permutation(X.shape[0])]
+# fait par moi
+run_svm_cv(X_noisy, y)
+# fin du fait par moi
+```
+
 ## Question 6
+
+
