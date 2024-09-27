@@ -1,8 +1,0 @@
-numpy
-scikit-learn
-pandas
-matplotlib
-scipy
-seaborn
-quarto
-graphviz
