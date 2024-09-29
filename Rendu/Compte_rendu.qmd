@@ -7,6 +7,7 @@ format:
 jupyter: python3
 ---
 
+
 ```{python}
 #| echo: false
 #| include: false
@@ -37,12 +38,66 @@ plt.style.use('ggplot')
 ```
 
 ## Introduction
-Les machines à vecteurs de support (Support Vector Machine, SVM, en anglais), sont un ensemble de méthodes d'apprentissage supervisé utilisées pour la classification, la régression et la détection des valeurs aberrantes. La popularité des méthodes SVM, pour la classification binaire en particulier, provient du fait qu’elles reposent sur l’application d’algorithmes de recherche de règles de décision linéaires : on parle d’hyperplans (affines) séparateurs.
+
+Les machines à vecteurs de support (Support Vector Machine, SVM, en anglais), sont un ensemble de méthodes d'apprentissage supervisé utilisées pour la classification, la régression et la détection des valeurs aberrantes. La popularité des méthodes SVM, pour la classification binaire en particulier, provient du fait qu’elles reposent sur l’application d’algorithmes de recherche de règles de décision linéaires : on parle d’hyperplans (affines) séparateurs.  
+Le code complet est disponible dans le fichier $\texttt{svm\_script.py}$ dans le dossier $\texttt{Code}$.   
+Dans ce compte rendu, nous avons fixé une graine $\texttt{np.random.seed(1234)}$ pour la reproductibilité des résultats. 
 
 ## Question 1
+
 Pour commencer, écrivons un code qui va classifier la classe 1 contre la classe 2 du dataset $\texttt{iris}$ en utilisant les deux premières variables et un noyau linéaire.
 
 ```{python}
+np.random.seed(1234)
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+X = X[y != 0, :2]
+y = y[y != 0]
+
+parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 200))}
+
+n_iterations = 50
+train_scores = []
+test_scores = []
+
+for i in range(n_iterations):
+
+    X, y = shuffle(X, y)
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=i)
+    
+    clf_linear = GridSearchCV(SVC(), parameters, n_jobs=-1)
+    
+    clf_linear.fit(X_train, y_train)
+    
+    train_scores.append(clf_linear.score(X_train, y_train))
+    test_scores.append(clf_linear.score(X_test, y_test))
+
+moy_train_score = np.mean(train_scores)
+moy_test_score = np.mean(test_scores)
+
+print(f'Mean generalization score over {n_iterations} iterations:')
+print(f'Train score: {moy_train_score}')
+print(f'Test score: {moy_test_score}')
+```
+
+Nous séparons donc aléatoirement le jeu de données en deux parties. L'une est réservée à l'entraîenement et l'autre au test. Nous calculons alors les scores obtnus pour chacun des échantillons pour un noyau linéaire. Nous réitérons cette action 50 fois, afin d'obtenir les scores moyens des deux échantillons :  
+- Le score moyen de l'échantillon d'entraînement : $0.7148$   
+- Le score moyen de l'échantillon de test : $0.674$
+
+Le socre moyen de l'échantillon d'entraînement est légèremenr supérieur à celui de l'échantillon test. Ce résultat semble pluôt cohérent, le modèle est plus performant sur les données avec lesquelles il s'est entraîné, puisqu'il les a déjà "vues". De plus, un écart entre le score d'entraînement et le score de test est indicateur d'overfitting : le modèle à "surapprit" sur les données d'apprentissage. Ici, l'écart est assez faible, le modèle n'a pas trop de mal à généraliser ce qu'il a apprit sur l'échantillon d'entraînement. 
+
+
+## Question 2
+
+Nous voulons alors comparer ce résultat avec un SVM basé sur noyau polynomial.
+
+```{python}
+np.random.seed(346)
 iris = datasets.load_iris()
 X = iris.data
 X = scaler.fit_transform(X)
@@ -50,49 +105,27 @@ y = iris.target
 X = X[y != 0, :2]
 y = y[y != 0]
 
+# split train test
 X, y = shuffle(X, y)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
+###############################################################################
+gammas = list(map(float, 10. ** np.arange(1, 2)))
+degrees = list(map(int, np.r_[1, 2, 3]))
 
-parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 200))}
-
-clf_linear = GridSearchCV(SVC(),parameters,n_jobs=-1)
-
-clf_linear.fit(X_train, y_train)
-
-print('Generalization score for linear kernel: %s, %s' %
-      (clf_linear.score(X_train, y_train),
-       clf_linear.score(X_test, y_test)))
-```
-
-Nous séparons donc aléatoirement le jeu de données en deux parties. L'une est réservée à l'entraîenement (notée "train" dans les codes) et l'autre au test (notée "test" dans les codes).   
-On applique balblabla  
-
-Nous obtenons alors le score de l'échantillon d'entraînement (en premier) et le score de l'échantillon de test (en second) pour un noyau linéaire.
-ici, commenter.
-
-## Question 2
-
-Nous voulons alors comparer ce résultat avec un SVM basé sur noyau polynomial.
-
-```{python}
-Cs = list(np.logspace(-3, 3, 5))
-gammas = 10. ** np.arange(1, 2)
-degrees = np.r_[1, 2, 3]
-
+# Définition de la grille de paramètres
 parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
 
+# Utilisation de GridSearchCV
+clf_poly = GridSearchCV(SVC(), param_grid=parameters, n_jobs=-1)
+clf_poly.fit(X_train, y_train)
 
-clf_poly = GridSearchCV(SVC(),parameters,n_jobs=-1)
-
-clf_poly.fit(X_train,y_train)
-
+# Affichage des meilleurs paramètres avec les bons types
 print(clf_poly.best_params_)
 
-print('Generalization score for polynomial kernel: %s, %s' %
-      (clf_poly.score(X_train, y_train),
-       clf_poly.score(X_test, y_test)))
 
+#%%
+# display your results using frontiere
 
 def f_linear(xx):
     """Classifier: needed to avoid warning due to shape issues"""
@@ -103,7 +136,7 @@ def f_poly(xx):
     return clf_poly.predict(xx.reshape(1, -1))
 
 plt.ion()
-plt.figure(figsize=(15, 5))
+plt.figure(figsize=(12, 4))
 plt.subplot(131)
 plot_2d(X, y)
 plt.title("iris dataset")
@@ -120,20 +153,41 @@ plt.tight_layout()
 plt.draw()
 ```
 
-surement faux ! comparer les résultats
+Les résultats obtenus sont, à première vue, assez troublants. En effet, le noyau polynômial offre un résultat très proche de celui du noyau linéaire. Il s'agit d'un polynôme de degré 1, donc une fonction linéaire (ou plutôt affine mais c'est un abus de langage). La graine est fixée, pour faciliter l'interprétation des résultats, mais en changeant la graine, il arrive d'obtenir des résultats différents: certaines frontières obtenues avec le noyau polynomial ont bel et bien un aspcet polynomial (par exemple avec la graine 567 (`np.random.seed(567)`) ou sans graine du tout, et en exécutant le code plusieurs fois).
 
 # SVM GUI
 
+Nous lançons le script $\texttt{svm\_gui.py}$ disponible dans la section $\texttt{Code}$. Cette application permet, en temps réel, d’évaluer l’impact du choix du noyau et du paramètre de régularisation C.
+
 ## Question 3
 
+Nous générons alors des jeux de données très déséquilibré avec beaucoup plus de points dans une classe que dans l’autre (au moins 90% pour la rouge vs 10% pour la noire).
+
+::: {.grid}
+::: {.g-col-4}
+![C=0.1](Images/01.png)
+:::
+::: {.g-col-4}
+![C=0.01](Images/001.png)
+:::
+::: {.g-col-4}
+![C=0.005](Images/0005.png)
+:::
+:::
 
 
 # Classification de visages
 
 Intéressons nous maintenant à un problème de classification de visages.
-Pour cela, nous utiliserons le jeu de données <i>Labeled Faces in the Wild</i> (<i>LWF</i>).
+Pour cela, nous utiliserons le jeu de données <i>Labeled Faces in the Wild</i> (<i>LWF</i>).  
+Dans la suite, nous ne nous intéresserons qu'à deux visages, ceux de Tony Blair et Collin Powell.
 
 ```{python}
+#| fig-cap: "Visage de Tony Blair dans la base de données"
+#| fig-align: "center"
+#| fig-width: 6  
+#| fig-height: 4 
+
 """
 The dataset used in this example is a preprocessed excerpt
 of the "Labeled Faces in the Wild", aka LFW_:
@@ -142,7 +196,7 @@ of the "Labeled Faces in the Wild", aka LFW_:
 
   _LFW: http://vis-www.cs.umass.edu/lfw/
 """
-
+np.random.seed(1234)
 lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4,
                               color=True, funneled=False, slice_=None,
                               download_if_missing=True)
@@ -179,11 +233,15 @@ images_train, images_test = images[
 ```
 
 
+
 ## Question 4
 
-Nous cherchons à montrer l'influence du paramètre de régularisation. Nous affichons dans la figure (METTRE REF) le score d'apprentissage en fonction de C sur une échelle logarithmique entre 1e5 et 1e-5 (qui n'est rien d'autre que 1 - l'erreur de prédiction).
+Nous cherchons à montrer l'influence du paramètre de régularisation.
 
 ```{python}
+#| fig-cap: 
+#|   - "Score d'apprentissage en fonction de la valeur de C"
+np.random.seed(1234)
 print("--- Linear kernel ---")
 print("Fitting the classifier to the training set")
 t0 = time()
@@ -191,6 +249,7 @@ t0 = time()
 # fit a classifier (linear) and test all the Cs
 Cs = 10. ** np.arange(-5, 6)
 scores = []
+errors = []
 for C in Cs:
 
     clf = SVC(kernel='linear', C=C)
@@ -207,18 +266,22 @@ plt.plot(Cs, scores)
 plt.xlabel("Parametres de regularisation C")
 plt.ylabel("Scores d'apprentissage")
 plt.xscale("log")
-plt.tight_layout()
+#plt.tight_layout()
 plt.show()
+plt.close()
 print("Best score: {}".format(np.max(scores)))
 
 print("Predicting the people names on the testing set")
 t0 = time()
+
 ```
 
-Nous remarquons alors que le score d'apprentissage augment en même temps de la constante de tolérance C. Le score atteint alors un plateau lorsque C = $10^{-3}$, devenant ainsi le meilleur paramètre.
-
+Nous remarquons alors que le score d'apprentissage augmente en même temps de la constante de tolérance C. Le score atteint alors un plateau lorsque C = $10^{-3}$, devenant ainsi le meilleur paramètre.  Notons que le score d'apprentissage n'est rien d'autre que 1 - l'erreur de prédiction.
+  
+Nous calculons alors la précision et son niveau de chance, en utilisant la valeur de C = $10^{-3}$ pour créer un nouveau classifier linéaire. Ce nouveau classifier est entraîné et testé.
 
 ```{python}
+np.random.seed(1234)
 t0=time()
 clf= SVC(kernel='linear', C=Cs[ind])
 clf.fit(X_train,y_train)
@@ -231,9 +294,12 @@ print("Chance level : %s" % max(np.mean(y), 1. - np.mean(y)))
 print("Accuracy : %s" % clf.score(X_test, y_test))
 ``` 
 
-Revenons-en à la classification des visages. 
+Nous obtenons alors une précision de $0.942$, avec un niveau de chance de $0.621$.   
+Mais revenons-en à la classification des visages. 
 
 ```{python}
+np.random.seed(1234)
+#| layout-ncol: 2
 y_pred = clf.predict(X_test)
 prediction_titles = [title(y_pred[i], y_test[i], names)
                      for i in range(y_pred.shape[0])]
@@ -249,13 +315,17 @@ plt.show()
 
 ```
 
-Est ce que la prédiction est meilleure en fonction des zones qu'on regarde et que c'est pour ca qu'on a une sorte de tete de voldemort comme disait charlier ? à voir, pour l'instant flemme.
+
+Nous pouvons comparer la prédiction à la vraie personne. Le modèle est plutôt bon. Sur les 12 photos de Blair et Powell, il ne commet aucune erreur. Ne nous emballons pas, il ne s'agit là que d'une réalisation, mais le classifier a tout de même une bonne précision  ($90\%$).    
+La seconde figure met en évidence les parties du visage qui sont les plus utiles pour reconnaître une personne. Plus la zone est jaune, plus elle est importante pour distinguer un visage. Nous pouvons voir qu'il s'agit de la bouche, du haut du crâne, des yeux et de nez. 
+
 
 ## Question 5
 
-Nous ajoutons à présent des variables de nuisances ($\texttt{X_noisy}$). Cela augmente ainsi le nombre de variables à nombre de points d’apprentissage fixé.
-
+Nous ajoutons à présent des variables de nuisances ($\texttt{X\_noisy}$). Cela augmente ainsi le nombre de variables à nombre de points d’apprentissage fixé. 
+Après implémentation, nous obtenons les résultats suivants : 
 ```{python}
+np.random.seed(1234)
 def run_svm_cv(_X, _y):
     _indices = np.random.permutation(_X.shape[0])
     _train_idx, _test_idx = _indices[:_X.shape[0] // 2], _indices[_X.shape[0] // 2:]
@@ -271,9 +341,9 @@ def run_svm_cv(_X, _y):
           (_clf_linear.score(_X_train, _y_train), _clf_linear.score(_X_test, _y_test)))
 
 print("Score sans variable de nuisance")
-# fait par moi
+
 run_svm_cv(X, y)
-# fin du fait par moi
+
 
 print("Score avec variable de nuisance")
 n_features = X.shape[1]
@@ -282,26 +352,52 @@ sigma = 1
 noise = sigma * np.random.randn(n_samples, 300, )
 X_noisy = np.concatenate((X, noise), axis=1)
 X_noisy = X_noisy[np.random.permutation(X.shape[0])]
-# fait par moi
+
 run_svm_cv(X_noisy, y)
-# fin du fait par moi
 ```
 
-Nous pouvons alors constater que la performance chute drastiquement lorsqu'on ajoute la variable de nuisance.
+|        | Entraîenement | Test      |
+|--------|--------|--------|
+| Score sans variable de nuisance  | 1.0  |   0.932     |
+| Score avec variables de nuisance   | 1.0   |    0.537    |
+
+
+Nous pouvons alors constater que la performance du modèle chute drastiquement lorsqu'on ajoute la variable de nuisance. De plus, l'écart entre le score de l'échantillon d'entraînement et de l'échantillon test est assez important lorsqu'on ajoute les variables de nuisance. Nous assistons au phénomène d'"overfitting", du à l'ajout de variables de nuisance. Ces dernières impactent fortement la capacité du modèle à s'adapter à de nouvelles données (les données de test).
 
 ## Question 6
 
+Finalement, nous voudrions réduire les dimensions afin d'améliorer la précision du modèle. Autrement dit, nous aimerions voir si l'overfitting peut être corrigé par une diminution de la dimension. Dans le code pré-rempli dans le $\texttt{svm\_script.py}$, la recommendation était de choisir un nombre de composantes autour de $20$. Cette opération nécessitant beaucoup de temps de calcul, nous n'avons fait tourné le code que sur un seul ordinateur (celui de Quentin Festor). C'est donc ses résultats que nous interpèterons dans cette section.
+
+Voici donc les résultats qu'il a obtenu : 
+
+| Nombre de composantes PCA | Score d'apprentissage | Score de test |
+|---------------------------|-----------------------|---------------|
+| 5                         | 0.6053                | 0.6158        |
+| 10                        | 0.6053                | 0.6368        |
+| 15                        | 0.6526                | 0.5895        |
+| 20                        | 0.6579                | 0.5895        |
+| 25                        | 0.6947                | 0.5842        |
+| 80                        | 0.7474                | 0.4895        |
+| 120                       | 1.0000                | 0.5263        |
+| 200                       | 0.9263                | 0.5211        |
+
 ```{python}
-print("Score apres reduction de dimension")
+import matplotlib.pyplot as plt
 
-n_components = 100  # jouer avec ce parametre
-pca = PCA(n_components=n_components).fit(X_noisy)
-# fait main
-X_noisy_pca = pca.transform(X_noisy)
+components = [5, 10, 15, 20, 25, 80, 120, 200]
+train_scores = [0.6053, 0.6053, 0.6526, 0.6579, 0.6947, 0.7474, 1.0000, 0.9263]
 
-print(f"Dimension après PCA: {X_noisy_pca.shape}")
-run_svm_cv(X_noisy_pca, y)
-# fin fait main
-``` 
+test_scores = [0.6158, 0.6368, 0.5895, 0.5895, 0.5842, 0.4895, 0.5263, 0.5211]
 
+plt.plot(components, train_scores, label="Score d'apprentissage", marker='o')
+plt.plot(components, test_scores, label="Score de test", marker='o', color='red')
+plt.xlabel("Nombre de composantes PCA")
+plt.ylabel("Score")
+plt.grid(True)
+plt.legend()
+
+plt.show()
+```
+
+Nous avons alors représenté ces résultats sous la forme d'un graphique, qui illustre bien la diminution de l'écart entre le score d'apprentissage et le score de test, à mesure que la dimension diminue elle aussi.
 
