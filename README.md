@@ -17,3 +17,7 @@ Afin de pouvoir compiler les fichiers `.py` et `.qmd` quelques packages sont né
 Afin de compiler le fichier `.qmd`, il faut :
 - cloner le répertoire sur son espace de travail personnel
 - exécuter la commande suivante dans le terminal associé au dossier ```bash quarto render Compte_rendu.qmd ```
+
+### Page Github
+
+La page `html` associée au compte-rendu du TP est accessible directement en cliquant sur le lien à droite dans la rubrique <i>About</i>, ou directement [ici](https://jeannevivierum.github.io/Support-Vector-Machine/).
