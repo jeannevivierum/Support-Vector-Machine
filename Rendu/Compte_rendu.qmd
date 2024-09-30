@@ -97,7 +97,7 @@ Le socre moyen de l'échantillon d'entraînement est légèremenr supérieur à 
 Nous voulons alors comparer ce résultat avec un SVM basé sur noyau polynomial.
 
 ```{python}
-np.random.seed(346)
+np.random.seed(1234)
 iris = datasets.load_iris()
 X = iris.data
 X = scaler.fit_transform(X)
@@ -112,6 +112,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_
 ###############################################################################
 gammas = list(map(float, 10. ** np.arange(1, 2)))
 degrees = list(map(int, np.r_[1, 2, 3]))
+Cs = list(np.logspace(-3, 3, 5))
+
 
 # Définition de la grille de paramètres
 parameters = {'kernel': ['poly'], 'C': Cs, 'gamma': gammas, 'degree': degrees}
@@ -175,6 +177,10 @@ Nous générons alors des jeux de données très déséquilibré avec beaucoup p
 :::
 :::
 
+Sur les figures ci- dessus, nous pouvons observer les hyperplans séparateurs (lignes noires continues), ainsi que les marges maximales (lignes noires en pointillés). Plus la constante C est grande plus la marge entre la frontière et les observations (points rouges et noirs) est petite. C'est le phénomène de surajustement, on veut "trop bien" séparer les deux couleurs.    
+En revanche, lorsque C est petite, la marge entre la frontière et les points de couleurs devient très grande, jusqu'à englober complètement les points dont la couleur est minoritaire.    
+Cependant, le classifier ne semble pas donner de poids particulier au nuage de points rouges. 
+ 
 
 # Classification de visages
 
@@ -399,5 +405,6 @@ plt.legend()
 plt.show()
 ```
 
-Nous avons alors représenté ces résultats sous la forme d'un graphique, qui illustre bien la diminution de l'écart entre le score d'apprentissage et le score de test, à mesure que la dimension diminue elle aussi.
+Nous avons alors représenté ces résultats sous la forme d'un graphique, qui illustre bien la diminution de l'écart entre le score d'apprentissage et le score de test, à mesure que la dimension diminue elle aussi.   
+
 
