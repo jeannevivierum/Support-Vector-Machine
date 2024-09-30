@@ -368,7 +368,7 @@ run_svm_cv(X_noisy, y)
 | Score avec variables de nuisance   | 1.0   |    0.537    |
 
 
-Nous pouvons alors constater que la performance du modèle chute drastiquement lorsqu'on ajoute la variable de nuisance. De plus, l'écart entre le score de l'échantillon d'entraînement et de l'échantillon test est assez important lorsqu'on ajoute les variables de nuisance. Nous assistons au phénomène d'"overfitting", du à l'ajout de variables de nuisance. Ces dernières impactent fortement la capacité du modèle à s'adapter à de nouvelles données (les données de test).
+Nous pouvons alors constater que la performance du modèle chute drastiquement lorsqu'on ajoute la variable de nuisance. De plus, l'écart entre le score de l'échantillon d'entraînement et de l'échantillon test est assez important lorsqu'on ajoute les variables de nuisance. Nous assistons au phénomène d'"overfitting", du à l'ajout de variables de nuisance. Ces dernières impactent fortement la capacité du modèle à s'adapter à de nouvelles données (les données de test). 
 
 ## Question 6
 
