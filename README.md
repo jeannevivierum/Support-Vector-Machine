@@ -8,13 +8,18 @@ Vous trouvez le compte rendu dans le dossier Rendu disponible à la source de l'
 
 Afin de pouvoir compiler les fichiers `.py` et `.qmd` quelques packages sont nécessaires. Pour les installer, vous pouvez taper cette commande :
 
-``` $ pip install -r requirements.txt ```
+``` 
+pip install -r requirements.txt
+```
 
 ### Quarto
 
 Afin de compiler le fichier `.qmd`, il faut :
 - cloner le répertoire sur son espace de travail personnel
-- exécuter la commande suivante dans le terminal associé au dossier ``` quarto render Compte_rendu.qmd ```
+- exécuter la commande suivante dans le terminal associé au dossier :
+   ```
+  quarto render Compte_rendu.qmd
+  ```
 
 ### Page Github
 
